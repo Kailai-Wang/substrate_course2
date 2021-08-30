@@ -36,6 +36,9 @@ to build and run the test:
 cargo test -p pallet-kitties
 ```
 
+![image](https://user-images.githubusercontent.com/7630809/131323334-65ba474e-4203-4476-831d-8f373c0f74ab.png)
+
+
 ### :clipboard: Homework 2.4
 
 please check the usage of:
