@@ -14,29 +14,60 @@ export default function Kitties (props) {
   const [status, setStatus] = useState('')
 
   const fetchKitties = () => {
-    // TODO: 在这里调用 `api.query.kittiesModule.*` 函数去取得猫咪的信息。
-    // 你需要取得：
-    //   - 共有多少只猫咪
-    //   - 每只猫咪的主人是谁
-    //   - 每只猫咪的 DNA 是什么，用来组合出它的形态
-  }
+    let unsubscribe
+    // query the kitty count
+    api.query.kittiesModule.kittiesCount(count => {
+      const c = count.isNone ? 0 : count.unwrap().toNumber()
 
-  const populateKitties = () => {
-    // TODO: 在这里添加额外的逻辑。你需要组成这样的数组结构：
-    //  ```javascript
-    //  const kitties = [{
-    //    id: 0,
-    //    dna: ...,
-    //    owner: ...
-    //  }, { id: ..., dna: ..., owner: ... }]
-    //  ```
-    // 这个 kitties 会传入 <KittyCards/> 然后对每只猫咪进行处理
-    const kitties = []
-    setKitties(kitties)
+      let countChanged = true
+      let kittyArray = []
+
+      for (let i = 0; i < c; i++) {
+        // query (listen) the 'kitties' and 'owner' in a multi query
+        api.queryMulti([
+          [api.query.kittiesModule.kitties, i],
+          [api.query.kittiesModule.owner, i]
+        ], ([kitty, owner]) => {
+          if (countChanged) {
+            // we get notified because kittyCount changed
+            // in this case concatenate the kitty arrays and
+            // update the state in the end
+            kittyArray = [
+              ...kittyArray,
+              {
+                id: i,
+                dna: kitty.unwrapOr(null).toU8a(),
+                owner: owner.toHuman()
+              }
+            ]
+            if (i === c - 1) {
+              setKitties(kittyArray)
+              countChanged = false
+            }
+          } else {
+            // we get notified because either kitties or owner changes
+            // in this case only update the kitty with the matching index
+            // while leaving others untouched
+            kittyArray = kittyArray.map(k =>
+              k.id !== i
+                ? k
+                : {
+                    id: i,
+                    dna: kitty.unwrapOr(null).toU8a(),
+                    owner: owner.toHuman()
+                  })
+            setKitties(kittyArray)
+          }
+        })
+      }
+    })
+      .then(unsub => {
+        unsubscribe = unsub
+      })
+      .catch(console.error)
   }
 
   useEffect(fetchKitties, [api, keyring])
-  useEffect(populateKitties, [])
 
   return <Grid.Column width={16}>
     <h1>小毛孩</h1>
