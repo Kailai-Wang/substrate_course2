@@ -256,7 +256,7 @@ pub mod pallet {
 				1 => Self::offchain_unsigned_tx(block_number),
 				2 => Self::offchain_unsigned_tx_signed_payload(block_number),
 				3 => Self::fetch_github_info(),
-				4 => Self::fetch_price_info_and_send_singed(block_number),
+				4 => Self::fetch_price_info_and_send_signed(block_number),
 				_ => Err(Error::<T>::UnknownOffchainMux),
 			};
 
@@ -338,16 +338,16 @@ pub mod pallet {
 			Ok(())
 		}
 
-		/// Submit the price in two parts as singed transaction.
+		/// Submit the price in two parts as signed transaction.
 		///
-		///   Here singed transaction is used mainly to enforce charge of transaction fee from caller
+		///   Here signed transaction is used mainly to enforce charge of transaction fee from caller
 		///   so that it's not easy (or at least costly) to attack the chain by simply spamming
 		///   excesive transactions.
 		///   Otherwise the unsigned validator logic would have to be extremely carefully
 		///   designed for unsigned transactions to mitigate any DoS attacks.
 		///   Besides that making HTTP requests to certain API too fast might result in a temp ban as well.
 		#[pallet::weight(10000)]
-		pub fn submit_price_singed(origin: OriginFor<T>, p1: u64, p2: Permill) -> DispatchResult {
+		pub fn submit_price_signed(origin: OriginFor<T>, p1: u64, p2: Permill) -> DispatchResult {
 			// ensure that we get a signed tx
 			let who = ensure_signed(origin)?;
 			Self::append_or_replace_price(p1, p2);
@@ -380,7 +380,7 @@ pub mod pallet {
 			});
 		}
 
-		fn fetch_price_info_and_send_singed(block_number: T::BlockNumber) -> Result<(), Error<T>> {
+		fn fetch_price_info_and_send_signed(block_number: T::BlockNumber) -> Result<(), Error<T>> {
 			let s_info = StorageValueRef::persistent(b"offchain-demo::price-info");
 			let bn_info = StorageValueRef::persistent(b"offchain-demo::price-block-number");
 
@@ -461,7 +461,7 @@ pub mod pallet {
 			//   - `Some((account, Err(())))`: error occured when sending the transaction
 			let result = signer.send_signed_transaction(|_acct|
 				// This is the on-chain function
-				Call::submit_price_singed(p1, p2));
+				Call::submit_price_signed(p1, p2));
 
 			// Display error if the signed tx fails.
 			if let Some((acc, res)) = result {
