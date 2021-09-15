@@ -47,7 +47,7 @@ pub mod pallet {
 	/// max length of price vector storage
 	const PRICE_VEC_LEN: usize = 10;
 	/// number of blocks in which the price-cache is valid
-	/// if we go beyong that we'll have to fetch it via HTTP again
+	/// if we go beyond that we'll have to fetch it via HTTP again
 	///
 	/// better would be use configurable constant, but here just for demo purpose
 	const PRICE_CACHE_VALIDITY_BLOCKS: u32 = 5;
